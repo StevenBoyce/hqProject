@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface TimeResponse {
   time: string;
@@ -6,10 +6,102 @@ interface TimeResponse {
   timezone: string;
 }
 
+type ElementType = "text" | "image" | "button";
+
+interface DraggableElement {
+  id: string;
+  type: ElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+const GRID_SIZE = 20;
+
 function App() {
   const [timeData, setTimeData] = useState<TimeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [elements, setElements] = useState<DraggableElement[]>([]);
+
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const elementsRef = useRef<DraggableElement[]>([]);
+
+  // Keep the ref in sync with the state
+  useEffect(() => {
+    elementsRef.current = elements;
+  }, [elements]);
+
+  const addElement = (type: ElementType) => {
+    setElements((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type,
+        x: 0,
+        y: 0,
+        width: GRID_SIZE * 5,
+        height: GRID_SIZE * 2,
+      },
+    ]);
+  };
+
+  const startDrag = (id: string, e: React.MouseEvent) => {
+    const elementsSnapshot = [...elements];
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const el = elements.find((el) => el.id === id);
+    if (!el) return;
+
+    const origX = el.x;
+    const origY = el.y;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      setElements((prev) =>
+        prev.map((el) =>
+          el.id === id
+            ? {
+                ...el,
+                x: Math.max(0, Math.min(800 - el.width, Math.round((origX + dx) / GRID_SIZE) * GRID_SIZE)),
+                y: Math.max(0, Math.min(600 - el.height, Math.round((origY + dy) / GRID_SIZE) * GRID_SIZE)),
+              }
+            : el
+        )
+      );
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      const movedElement = elementsRef.current.find((el) => el.id === id);
+      if (willMoveCollide(movedElement)) {
+        setElements(elementsSnapshot);
+      }
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+
+  const willMoveCollide = (element: DraggableElement | undefined, currentElements: DraggableElement[] = elementsRef.current) => {
+    let willCollide = false;
+    if (!element) return false;
+    for (const el of currentElements) {
+      if (element.id !== el.id) {
+        if (element.x + element.width > el.x && element.x < el.x + el.width && element.y + element.height > el.y && element.y < el.y + el.height) {
+          willCollide = true;
+          break;
+        }
+      }
+    }
+    return willCollide;
+  }
+
 
   const fetchTime = async () => {
     setLoading(true);
@@ -33,7 +125,8 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+    <div>
+<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
           Hello World
@@ -85,7 +178,47 @@ function App() {
           <p>Layout Builder - Frontend & Backend Connected! 🚀</p>
         </div>
       </div>
+      <div className="p-4 flex gap-4">
+      <div className="flex flex-col gap-2">
+        <button className="bg-blue-500 text-white px-4 py-2" onClick={() => addElement("text")}>
+          Add Text
+        </button>
+        <button className="bg-green-500 text-white px-4 py-2" onClick={() => addElement("image")}>
+          Add Image
+        </button>
+        <button className="bg-purple-500 text-white px-4 py-2" onClick={() => addElement("button")}>
+          Add Button
+        </button>
+      </div>
+
+      <div
+        ref={canvasRef}
+        className="relative w-[800px] h-[600px] bg-gray-100 border border-gray-400"
+        style={{ backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`, backgroundImage: "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)" }}
+      >
+        {elements.map((el) => (
+          <div
+            key={el.id}
+            onMouseDown={(e) => startDrag(el.id, e)}
+            className="absolute cursor-move bg-white border border-black p-1 text-xs overflow-hidden"
+            style={{
+              left: el.x,
+              top: el.y,
+              width: el.width,
+              height: el.height,
+            }}
+          >
+            {el.type === "text" && <span>Text Box</span>}
+            {el.type === "image" && <div className="w-full h-full bg-gray-300">Image</div>}
+            {el.type === "button" && <button className="bg-blue-400 w-full h-full">Button</button>}
+          </div>
+        ))}
+      </div>
     </div>
+
+    </div>
+    </div>
+  
   )
 }
 
