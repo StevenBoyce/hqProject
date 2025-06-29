@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Element, ElementType } from './types';
 import { 
   willElementCollide, 
@@ -7,6 +7,7 @@ import {
   createElement 
 } from './services/elementService';
 import { TextElement, ImageElement, ButtonElement } from './components/elements';
+import { LoginComponent } from './components/LoginComponent';
 
 const GRID_SIZE = 10;
 
@@ -141,9 +142,14 @@ function App() {
   };
 
   return (
-    <div>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="p-4 flex gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 relative">
+      {/* Login Component - Top Right Corner */}
+      <div className="absolute top-4 right-4 z-10">
+        <LoginComponent />
+      </div>
+
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="flex gap-4">
           <div className="flex flex-col gap-2">
             <button 
               className={`px-4 py-2 text-white transition-colors duration-200 ${
