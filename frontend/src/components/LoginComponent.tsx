@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginComponentProps {
   className?: string;
@@ -9,6 +10,7 @@ export const LoginComponent: React.FC<LoginComponentProps> = ({ className = '' }
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for existing username in localStorage on component mount
@@ -33,7 +35,7 @@ export const LoginComponent: React.FC<LoginComponentProps> = ({ className = '' }
     localStorage.removeItem('layoutBuilderUsername');
     setUsername('');
     setIsLoggedIn(false);
-    window.location.reload();
+    navigate('/login');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
