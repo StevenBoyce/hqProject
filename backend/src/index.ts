@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import layoutRoutes from './routes/layoutRoutes';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -40,66 +41,8 @@ app.get('/api/time', (req, res) => {
   });
 });
 
-// Layout endpoints (placeholder for now)
-app.get('/api/layouts', async (req, res) => {
-  try {
-    const userId = req.query.userId as string;
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-    
-    const layouts = await prisma.layout.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' }
-    });
-    
-    res.json(layouts);
-  } catch (error) {
-    console.error('Error fetching layouts:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/layouts/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const layout = await prisma.layout.findUnique({
-      where: { id }
-    });
-    
-    if (!layout) {
-      return res.status(404).json({ error: 'Layout not found' });
-    }
-    
-    res.json(layout);
-  } catch (error) {
-    console.error('Error fetching layout:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/layouts', async (req, res) => {
-  try {
-    const { name, userId, content } = req.body;
-    
-    if (!name || !userId || !content) {
-      return res.status(400).json({ error: 'name, userId, and content are required' });
-    }
-    
-    const layout = await prisma.layout.create({
-      data: {
-        name,
-        userId,
-        content
-      }
-    });
-    
-    res.status(201).json(layout);
-  } catch (error) {
-    console.error('Error creating layout:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Layout routes
+app.use('/api/layouts', layoutRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -123,6 +66,7 @@ async function startServer() {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`⏰ Time endpoint: http://localhost:${PORT}/api/time`);
+      console.log(`🎨 Layouts API: http://localhost:${PORT}/api/layouts`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

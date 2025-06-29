@@ -16,7 +16,7 @@ export interface TextProperties {
 }
 
 export interface ImageProperties {
-  src: string;
+  src?: string;
   alt: string;
 }
 
