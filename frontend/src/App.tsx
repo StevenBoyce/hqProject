@@ -1,24 +1,21 @@
-import { useState, useEffect, useRef } from 'react'
-
-type ElementType = "text" | "image" | "button";
-
-interface DraggableElement {
-  id: string;
-  type: ElementType;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
+import { useState, useEffect, useRef } from 'react';
+import { Element, ElementType } from './types';
+import { 
+  willElementCollide, 
+  calculateGridPosition, 
+  calculateGridResize, 
+  createElement 
+} from './services/elementService';
+import { TextElement, ImageElement, ButtonElement } from './components/elements';
 
 const GRID_SIZE = 10;
 
 function App() {
-  const [elements, setElements] = useState<DraggableElement[]>([]);
+  const [elements, setElements] = useState<Element[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  const elementsRef = useRef<DraggableElement[]>([]);
+  const elementsRef = useRef<Element[]>([]);
 
   // Keep the ref in sync with the state
   useEffect(() => {
@@ -26,20 +23,13 @@ function App() {
   }, [elements]);
 
   const addElement = (type: ElementType) => {
-    setElements((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        type,
-        x: 0,
-        y: 0,
-        width: GRID_SIZE * 5,
-        height: GRID_SIZE * 4,
-      },
-    ]);
+    if (isPreviewMode) return; // Disable adding elements in preview mode
+    const newElement = createElement(type, 0, 0);
+    setElements((prev) => [...prev, newElement]);
   };
 
   const startDrag = (id: string, e: React.MouseEvent) => {
+    if (isPreviewMode) return; // Disable dragging in preview mode
     const elementsSnapshot = [...elements];
     const startX = e.clientX;
     const startY = e.clientY;
@@ -51,17 +41,21 @@ function App() {
     const origY = el.y;
 
     const onMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
+      const { x, y } = calculateGridPosition(
+        origX, 
+        origY, 
+        e.clientX, 
+        e.clientY, 
+        startX, 
+        startY, 
+        el.width, 
+        el.height
+      );
+      
       setElements((prev) =>
         prev.map((el) =>
           el.id === id
-            ? {
-                ...el,
-                x: Math.max(0, Math.min(800 - el.width, Math.round((origX + dx) / GRID_SIZE) * GRID_SIZE)),
-                y: Math.max(0, Math.min(600 - el.height, Math.round((origY + dy) / GRID_SIZE) * GRID_SIZE)),
-              }
+            ? { ...el, x, y }
             : el
         )
       );
@@ -71,7 +65,7 @@ function App() {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
       const movedElement = elementsRef.current.find((el) => el.id === id);
-      if (willMoveCollide(movedElement)) {
+      if (willElementCollide(movedElement, elementsRef.current)) {
         setElements(elementsSnapshot);
       }
     };
@@ -81,6 +75,7 @@ function App() {
   };
 
   const startResize = (id: string, e: React.MouseEvent) => {
+    if (isPreviewMode) return; // Disable resizing in preview mode
     e.stopPropagation(); // Prevent triggering drag
     const elementsSnapshot = [...elements];
     const startX = e.clientX;
@@ -93,25 +88,21 @@ function App() {
     const origHeight = el.height;
 
     const onMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      // Calculate new dimensions (only increase from bottom-right)
-      const newWidth = Math.max(GRID_SIZE, origWidth + Math.round(dx / GRID_SIZE) * GRID_SIZE);
-      const newHeight = Math.max(GRID_SIZE, origHeight + Math.round(dy / GRID_SIZE) * GRID_SIZE);
-
-      // Clamp to canvas bounds
-      const clampedWidth = Math.min(800 - el.x, newWidth);
-      const clampedHeight = Math.min(600 - el.y, newHeight);
+      const { width, height } = calculateGridResize(
+        origWidth, 
+        origHeight, 
+        e.clientX, 
+        e.clientY, 
+        startX, 
+        startY, 
+        el.x, 
+        el.y
+      );
 
       setElements((prev) =>
         prev.map((el) =>
           el.id === id
-            ? {
-                ...el,
-                width: clampedWidth,
-                height: clampedHeight,
-              }
+            ? { ...el, width, height }
             : el
         )
       );
@@ -121,7 +112,7 @@ function App() {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
       const resizedElement = elementsRef.current.find((el) => el.id === id);
-      if (willMoveCollide(resizedElement)) {
+      if (willElementCollide(resizedElement, elementsRef.current)) {
         setElements(elementsSnapshot);
       }
     };
@@ -130,88 +121,92 @@ function App() {
     document.addEventListener("mouseup", onMouseUp);
   };
 
-  const willMoveCollide = (element: DraggableElement | undefined, currentElements: DraggableElement[] = elementsRef.current) => {
-    let willCollide = false;
-    if (!element) return false;
-    for (const el of currentElements) {
-      if (element.id !== el.id) {
-        if (element.x + element.width > el.x && element.x < el.x + el.width && element.y + element.height > el.y && element.y < el.y + el.height) {
-          willCollide = true;
-          break;
-        }
-      }
+  const renderElement = (element: Element) => {
+    const commonProps = {
+      isPreviewMode,
+      onMouseDown: (e: React.MouseEvent) => startDrag(element.id, e),
+      onResize: (e: React.MouseEvent) => startResize(element.id, e),
+    };
+
+    switch (element.type) {
+      case 'text':
+        return <TextElement key={element.id} element={element as any} {...commonProps} />;
+      case 'image':
+        return <ImageElement key={element.id} element={element as any} {...commonProps} />;
+      case 'button':
+        return <ButtonElement key={element.id} element={element as any} {...commonProps} />;
+      default:
+        return null;
     }
-    return willCollide;
-  }
+  };
 
   return (
     <div>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="p-4 flex gap-4">
-        <div className="flex flex-col gap-2">
-          <button className="bg-blue-500 text-white px-4 py-2" onClick={() => addElement("text")}>
-            Add Text
-          </button>
-          <button className="bg-green-500 text-white px-4 py-2" onClick={() => addElement("image")}>
-            Add Image
-          </button>
-          <button className="bg-purple-500 text-white px-4 py-2" onClick={() => addElement("button")}>
-            Add Button
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {/* Preview Toggle */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Preview</label>
-            <input
-              type="checkbox"
-              checked={isPreviewMode}
-              onChange={(e) => setIsPreviewMode(e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            />
+        <div className="p-4 flex gap-4">
+          <div className="flex flex-col gap-2">
+            <button 
+              className={`px-4 py-2 text-white transition-colors duration-200 ${
+                isPreviewMode 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+              onClick={() => addElement("text")}
+              disabled={isPreviewMode}
+            >
+              Add Text
+            </button>
+            <button 
+              className={`px-4 py-2 text-white transition-colors duration-200 ${
+                isPreviewMode 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-green-500 hover:bg-green-600'
+              }`}
+              onClick={() => addElement("image")}
+              disabled={isPreviewMode}
+            >
+              Add Image
+            </button>
+            <button 
+              className={`px-4 py-2 text-white transition-colors duration-200 ${
+                isPreviewMode 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-purple-500 hover:bg-purple-600'
+              }`}
+              onClick={() => addElement("button")}
+              disabled={isPreviewMode}
+            >
+              Add Button
+            </button>
           </div>
 
-          <div
-            ref={canvasRef}
-            className="relative w-[800px] h-[600px] bg-gray-100 border border-gray-400"
-            style={{ 
-              backgroundSize: isPreviewMode ? '0px 0px' : `${GRID_SIZE}px ${GRID_SIZE}px`, 
-              backgroundImage: isPreviewMode ? 'none' : "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)" 
-            }}
-          >
-            {elements.map((el) => (
-              <div
-                key={el.id}
-                onMouseDown={(e) => startDrag(el.id, e)}
-                className="absolute cursor-move bg-white border border-black p-1 text-xs overflow-hidden"
-                style={{
-                  left: el.x,
-                  top: el.y,
-                  width: el.width,
-                  height: el.height,
-                }}
-              >
-                {el.type === "text" && <span>Text Box</span>}
-                {el.type === "image" && <div className="w-full h-full bg-gray-300">Image</div>}
-                {el.type === "button" && <button className="bg-blue-400 w-full h-full">Button</button>}
-                
-                {/* Resize handles - only show when not in preview mode */}
-                {!isPreviewMode && (
-                  <div
-                    className="absolute bottom-0 right-0 w-2 h-2 bg-blue-500 cursor-se-resize"
-                    onMouseDown={(e) => startResize(el.id, e)}
-                  />
-                )}
-              </div>
-            ))}
+          <div className="flex flex-col gap-4">
+            {/* Preview Toggle */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Preview</label>
+              <input
+                type="checkbox"
+                checked={isPreviewMode}
+                onChange={(e) => setIsPreviewMode(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </div>
+
+            <div
+              ref={canvasRef}
+              className="relative w-[800px] h-[600px] bg-gray-100 border border-gray-400"
+              style={{ 
+                backgroundSize: isPreviewMode ? '0px 0px' : `${GRID_SIZE}px ${GRID_SIZE}px`, 
+                backgroundImage: isPreviewMode ? 'none' : "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)" 
+              }}
+            >
+              {elements.map(renderElement)}
+            </div>
           </div>
         </div>
       </div>
     </div>
-    </div>
-  
-  )
+  );
 }
 
-export default App 
+export default App; 
