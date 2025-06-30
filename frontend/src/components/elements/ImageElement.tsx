@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { ImageElement as ImageElementType } from '../../types';
+import { CanvasElement } from './CanvasElement';
+import { DeleteButton } from './DeleteButton';
+import { ResizeHandle } from './ResizeHandle';
 
 interface ImageElementProps {
   element: ImageElementType;
   isPreviewMode: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   onResize: (e: React.MouseEvent) => void;
+  onDelete?: (elementId: string) => void;
 }
 
 export const ImageElement: React.FC<ImageElementProps> = ({ 
   element, 
   isPreviewMode, 
   onMouseDown, 
-  onResize 
+  onResize,
+  onDelete
 }) => {
   const [photoId, setPhotoId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
 
   // Generate random photo ID when component mounts
   useEffect(() => {
@@ -40,35 +46,61 @@ export const ImageElement: React.FC<ImageElementProps> = ({
     return `https://picsum.photos/id/${photoId}/${width}/${height}`;
   };
 
+  // Fallback image URL using a different service
+  const getFallbackUrl = () => {
+    const width = Math.round(element.width);
+    const height = Math.round(element.height);
+    return `https://via.placeholder.com/${width}x${height}/cccccc/666666?text=Image`;
+  };
+
   const handleImageLoad = () => {
     setIsLoading(false);
     setImageLoaded(true);
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image failed to load:', e.currentTarget.src);
     setIsLoading(false);
     setImageLoaded(false);
+    
+    // If picsum.photos failed, try fallback
+    if (!useFallback && e.currentTarget.src.includes('picsum.photos')) {
+      console.log('Switching to fallback image service');
+      setUseFallback(true);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(element.id);
+    }
   };
 
   // Start loading when entering preview mode
   useEffect(() => {
     if (isPreviewMode && photoId && !imageLoaded) {
       setIsLoading(true);
+      const imageUrl = useFallback ? getFallbackUrl() : getPicsumUrl();
+      console.log('Loading image:', imageUrl);
     }
-  }, [isPreviewMode, photoId, imageLoaded]);
+  }, [isPreviewMode, photoId, imageLoaded, useFallback]);
+
+  // Reset fallback when photoId changes
+  useEffect(() => {
+    setUseFallback(false);
+  }, [photoId]);
 
   return (
-    <div
-      className={`absolute border bg-white overflow-hidden ${
-        isPreviewMode ? 'border-transparent' : 'border-gray-300 cursor-move'
-      }`}
-      style={{
-        left: element.x,
-        top: element.y,
-        width: element.width,
-        height: element.height,
-      }}
+    <CanvasElement
+      x={element.x}
+      y={element.y}
+      width={element.width}
+      height={element.height}
       onMouseDown={isPreviewMode ? undefined : onMouseDown}
+      isPreviewMode={isPreviewMode}
+      topRightOverlay={!isPreviewMode ? <DeleteButton onDelete={handleDelete} /> : undefined}
+      bottomRightOverlay={!isPreviewMode ? <ResizeHandle onMouseDown={onResize} /> : undefined}
     >
       {isPreviewMode ? (
         <>
@@ -79,7 +111,7 @@ export const ImageElement: React.FC<ImageElementProps> = ({
           )}
           {photoId && (
             <img
-              src={getPicsumUrl()}
+              src={useFallback ? getFallbackUrl() : getPicsumUrl()}
               alt={element.alt}
               className={`w-full h-full object-cover ${isLoading ? 'hidden' : ''}`}
               onLoad={handleImageLoad}
@@ -93,14 +125,6 @@ export const ImageElement: React.FC<ImageElementProps> = ({
           <span>{element.alt}</span>
         </div>
       )}
-      
-      {/* Resize handle - only show when not in preview mode */}
-      {!isPreviewMode && (
-        <div
-          className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 cursor-se-resize"
-          onMouseDown={onResize}
-        />
-      )}
-    </div>
+    </CanvasElement>
   );
 }; 

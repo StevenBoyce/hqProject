@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ButtonElement as ButtonElementType } from '../../types';
 import { sanitizeElementText } from '../../utils/sanitize';
+import { CanvasElement } from './CanvasElement';
+import { DeleteButton } from './DeleteButton';
+import { ResizeHandle } from './ResizeHandle';
 
 interface ButtonElementProps {
   element: ButtonElementType;
@@ -8,6 +11,7 @@ interface ButtonElementProps {
   onResize: (e: React.MouseEvent) => void;
   isPreviewMode: boolean;
   onUpdate?: (elementId: string, updates: Partial<ButtonElementType>) => void;
+  onDelete?: (elementId: string) => void;
 }
 
 export const ButtonElement: React.FC<ButtonElementProps> = ({ 
@@ -15,7 +19,8 @@ export const ButtonElement: React.FC<ButtonElementProps> = ({
   onMouseDown, 
   onResize, 
   isPreviewMode,
-  onUpdate 
+  onUpdate,
+  onDelete 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(element.text);
@@ -59,19 +64,24 @@ export const ButtonElement: React.FC<ButtonElementProps> = ({
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(element.id);
+    }
+  };
+
   return (
-    <div
-      className={`absolute border bg-white overflow-hidden ${
-        isPreviewMode ? 'border-transparent' : 'border-gray-300 cursor-move'
-      }`}
-      style={{
-        left: element.x,
-        top: element.y,
-        width: element.width,
-        height: element.height,
-      }}
+    <CanvasElement
+      x={element.x}
+      y={element.y}
+      width={element.width}
+      height={element.height}
       onMouseDown={onMouseDown}
       onDoubleClick={handleDoubleClick}
+      isPreviewMode={isPreviewMode}
+      topRightOverlay={!isPreviewMode ? <DeleteButton onDelete={handleDelete} /> : undefined}
+      bottomRightOverlay={!isPreviewMode ? <ResizeHandle onMouseDown={onResize} /> : undefined}
     >
       {isEditing ? (
         <input
@@ -91,12 +101,6 @@ export const ButtonElement: React.FC<ButtonElementProps> = ({
           {element.text}
         </button>
       )}
-      {!isPreviewMode && (
-        <div
-          className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 cursor-se-resize"
-          onMouseDown={onResize}
-        />
-      )}
-    </div>
+    </CanvasElement>
   );
 }; 

@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TextElement as TextElementType } from '../../types';
 import { sanitizeElementText } from '../../utils/sanitize';
+import { CanvasElement } from './CanvasElement';
+import { DeleteButton } from './DeleteButton';
+import { ResizeHandle } from './ResizeHandle';
 
 interface TextElementProps {
   element: TextElementType;
@@ -8,6 +11,7 @@ interface TextElementProps {
   onResize: (e: React.MouseEvent) => void;
   isPreviewMode: boolean;
   onUpdate?: (elementId: string, updates: Partial<TextElementType>) => void;
+  onDelete?: (elementId: string) => void;
 }
 
 export const TextElement: React.FC<TextElementProps> = ({ 
@@ -15,7 +19,8 @@ export const TextElement: React.FC<TextElementProps> = ({
   onMouseDown, 
   onResize, 
   isPreviewMode,
-  onUpdate 
+  onUpdate,
+  onDelete 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(element.text);
@@ -59,19 +64,25 @@ export const TextElement: React.FC<TextElementProps> = ({
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(element.id);
+    }
+  };
+
   return (
-    <div
-      className={`absolute border bg-white p-2 overflow-hidden ${
-        isPreviewMode ? 'border-transparent' : 'border-gray-300 cursor-move'
-      }`}
-      style={{
-        left: element.x,
-        top: element.y,
-        width: element.width,
-        height: element.height,
-      }}
+    <CanvasElement
+      x={element.x}
+      y={element.y}
+      width={element.width}
+      height={element.height}
       onMouseDown={onMouseDown}
       onDoubleClick={handleDoubleClick}
+      isPreviewMode={isPreviewMode}
+      className="p-2"
+      topRightOverlay={!isPreviewMode ? <DeleteButton onDelete={handleDelete} /> : undefined}
+      bottomRightOverlay={!isPreviewMode ? <ResizeHandle onMouseDown={onResize} /> : undefined}
     >
       {isEditing ? (
         <input
@@ -98,12 +109,6 @@ export const TextElement: React.FC<TextElementProps> = ({
           {element.text}
         </div>
       )}
-      {!isPreviewMode && (
-        <div
-          className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 cursor-se-resize"
-          onMouseDown={onResize}
-        />
-      )}
-    </div>
+    </CanvasElement>
   );
 }; 
