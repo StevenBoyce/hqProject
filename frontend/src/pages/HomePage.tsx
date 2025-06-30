@@ -7,6 +7,7 @@ import { ButtonElement } from '../components/elements/ButtonElement';
 import { UserBadge } from '../components/UserBadge';
 import { LayoutsPanel, LayoutsPanelRef } from '../components/LayoutsPanel';
 import { Layout, layoutService } from '../services/layoutService';
+import { sanitizeLayoutName } from '../utils/sanitize';
 
 const GRID_SIZE = 10;
 
@@ -160,13 +161,13 @@ export const HomePage: React.FC = () => {
         // Update existing layout
         const updatedLayout = await layoutService.updateLayout(
           currentLayout.id,
-          layoutName.trim(),
+          sanitizeLayoutName(layoutName.trim()),
           elements
         );
         setCurrentLayout(updatedLayout);
       } else {
         // Create new layout
-        const newLayout = await layoutService.createLayout(layoutName.trim(), elements);
+        const newLayout = await layoutService.createLayout(sanitizeLayoutName(layoutName.trim()), elements);
         setCurrentLayout(newLayout);
       }
       
@@ -194,11 +195,22 @@ export const HomePage: React.FC = () => {
     setSaveError(null);
   };
 
+  const handleElementUpdate = (elementId: string, updates: Partial<Element>) => {
+    setElements((prev) =>
+      prev.map((el) =>
+        el.id === elementId
+          ? { ...el, ...updates }
+          : el
+      )
+    );
+  };
+
   const renderElement = (element: Element) => {
     const commonProps = {
       isPreviewMode,
       onMouseDown: (e: React.MouseEvent) => startDrag(element.id, e),
       onResize: (e: React.MouseEvent) => startResize(element.id, e),
+      onUpdate: handleElementUpdate,
     };
 
     switch (element.type) {
@@ -263,7 +275,7 @@ export const HomePage: React.FC = () => {
                 className={`px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-blue-500 hover:bg-blue-600'
+                    : 'bg-gray-600 hover:bg-gray-700'
                 }`}
                 onClick={() => addElement("text")}
                 disabled={isPreviewMode}
@@ -274,7 +286,7 @@ export const HomePage: React.FC = () => {
                 className={`px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-green-500 hover:bg-green-600'
+                    : 'bg-gray-600 hover:bg-gray-700'
                 }`}
                 onClick={() => addElement("image")}
                 disabled={isPreviewMode}
@@ -285,7 +297,7 @@ export const HomePage: React.FC = () => {
                 className={`px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-purple-500 hover:bg-purple-600'
+                    : 'bg-gray-600 hover:bg-gray-700'
                 }`}
                 onClick={() => addElement("button")}
                 disabled={isPreviewMode}
@@ -301,7 +313,7 @@ export const HomePage: React.FC = () => {
                 className={`px-6 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
                   isSaving || isPreviewMode || elements.length === 0 || !layoutName.trim()
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600'
+                    : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
                 {isSaving ? 'Saving...' : currentLayout ? 'Save Changes' : 'Save Layout'}
@@ -313,7 +325,7 @@ export const HomePage: React.FC = () => {
                 className={`px-6 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
                   isSaving || isPreviewMode
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-orange-500 hover:bg-orange-600'
+                    : 'bg-gray-600 hover:bg-gray-700'
                 }`}
               >
                 Create New Layout

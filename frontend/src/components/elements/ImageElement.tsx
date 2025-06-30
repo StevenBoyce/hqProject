@@ -59,8 +59,8 @@ export const ImageElement: React.FC<ImageElementProps> = ({
 
   return (
     <div
-      className={`absolute border-2 border-green-500 bg-green-100 ${
-        isPreviewMode ? '' : 'cursor-move'
+      className={`absolute border bg-white overflow-hidden ${
+        isPreviewMode ? 'border-transparent' : 'border-gray-300 cursor-move'
       }`}
       style={{
         left: element.x,
@@ -97,7 +97,7 @@ export const ImageElement: React.FC<ImageElementProps> = ({
       {/* Resize handle - only show when not in preview mode */}
       {!isPreviewMode && (
         <div
-          className="absolute bottom-0 right-0 w-3 h-3 bg-green-600 cursor-se-resize"
+          className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 cursor-se-resize"
           onMouseDown={onResize}
         />
       )}

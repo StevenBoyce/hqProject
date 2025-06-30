@@ -1,34 +1,48 @@
 import { z } from 'zod';
 
+// Helper function to sanitize and validate text content
+const sanitizeText = (text: string): string => {
+  if (typeof text !== 'string') return '';
+  
+  // Remove HTML entities and dangerous characters
+  return text
+    .replace(/[&<>"'`=\/]/g, '') // Remove dangerous HTML characters
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:/gi, '') // Remove data: URLs
+    .replace(/vbscript:/gi, '') // Remove vbscript: URLs
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .trim();
+};
+
 // Element base schema
 const ElementBaseSchema = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(100),
   type: z.enum(['text', 'image', 'button']),
-  x: z.number().min(0),
-  y: z.number().min(0),
-  width: z.number().min(1),
-  height: z.number().min(1),
+  x: z.number().min(0).max(10000),
+  y: z.number().min(0).max(10000),
+  width: z.number().min(1).max(1000),
+  height: z.number().min(1).max(1000),
 });
 
 // Text element schema
 const TextElementSchema = ElementBaseSchema.extend({
   type: z.literal('text'),
-  text: z.string(),
-  fontSize: z.number().min(1),
-  fontFamily: z.string(),
+  text: z.string().min(1).max(500).transform(sanitizeText), // Sanitized and length limited
+  fontSize: z.number().min(8).max(72), // Reasonable font size range
+  fontFamily: z.string().min(1).max(50),
 });
 
 // Image element schema
 const ImageElementSchema = ElementBaseSchema.extend({
   type: z.literal('image'),
-  src: z.string().optional(),
-  alt: z.string(),
+  src: z.string().optional().or(z.literal('')), // Allow empty strings or optional URLs
+  alt: z.string().min(1).max(200).transform(sanitizeText), // Sanitized alt text
 });
 
 // Button element schema
 const ButtonElementSchema = ElementBaseSchema.extend({
   type: z.literal('button'),
-  text: z.string(),
+  text: z.string().min(1).max(100).transform(sanitizeText), // Sanitized and length limited
 });
 
 // Union of all element types
@@ -39,18 +53,18 @@ const ElementSchema = z.discriminatedUnion('type', [
 ]);
 
 // Layout content schema (array of elements)
-const LayoutContentSchema = z.array(ElementSchema);
+const LayoutContentSchema = z.array(ElementSchema).max(100); // Limit number of elements
 
 // Create/Update layout request schema
 export const CreateLayoutSchema = z.object({
-  name: z.string().min(1).max(255),
-  userId: z.string().min(1),
+  name: z.string().min(1).max(100).transform(sanitizeText), // Sanitized layout name
+  userId: z.string().min(1).max(100),
   content: LayoutContentSchema,
 });
 
 // Update layout request schema (all fields optional)
 export const UpdateLayoutSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
+  name: z.string().min(1).max(100).transform(sanitizeText).optional(), // Sanitized layout name
   content: LayoutContentSchema.optional(),
 });
 
@@ -69,12 +83,12 @@ export const LayoutsListResponseSchema = z.array(LayoutResponseSchema);
 
 // Query parameters schema
 export const LayoutsQuerySchema = z.object({
-  userId: z.string().min(1),
+  userId: z.string().min(1).max(100),
 });
 
 // Path parameters schema
 export const LayoutPathSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).max(100),
 });
 
 // Type exports
