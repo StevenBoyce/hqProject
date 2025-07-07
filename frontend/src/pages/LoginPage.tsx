@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { authUtils } from '../utils/authUtils';
 
 export const LoginPage: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('');
@@ -9,7 +9,7 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    if (authService.isLoggedIn()) {
+    if (authUtils.isLoggedIn()) {
       // User is already logged in, redirect to dashboard
       navigate('/dashboard');
     } else {
@@ -19,7 +19,7 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = () => {
     if (inputValue.trim()) {
-      authService.setUsername(inputValue.trim());
+      authUtils.setUsername(inputValue.trim());
       navigate('/dashboard');
     }
   };

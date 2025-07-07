@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardIcon, ProfileIcon, LogoutIcon } from '../icons';
-import { authService } from '../services/authService';
+import { authUtils } from '../utils/authUtils';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -9,7 +9,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
-  const username = authService.getUsername();
+  const username = authUtils.getUsername();
   const navigate = useNavigate();
 
   const handleDashboardClick = (e: React.MouseEvent) => {
@@ -19,7 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    authService.logout();
+    authUtils.logout();
     navigate('/login');
   };
 

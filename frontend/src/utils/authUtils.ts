@@ -1,6 +1,6 @@
 const USERNAME_KEY = 'layoutBuilderUsername';
 
-export const authService = {
+export const authUtils = {
   setUsername: (username: string): void => {
     localStorage.setItem(USERNAME_KEY, username);
   },

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Layout, layoutService } from '../services/layoutService';
 import { Canvas } from '../components/Canvas';
-import { authService } from '../services/authService';
+import { authUtils } from '../utils/authUtils';
 
 export const ReadOnlyLayoutPage: React.FC = () => {
   const [layout, setLayout] = useState<Layout | null>(null);
@@ -47,7 +47,7 @@ export const ReadOnlyLayoutPage: React.FC = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Layout Not Found</h1>
           <p className="text-gray-600 mb-4">{error || 'The requested layout could not be found.'}</p>
-          {authService.isLoggedIn() ? (
+          {authUtils.isLoggedIn() ? (
             <a 
               href="/dashboard" 
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
@@ -80,7 +80,7 @@ export const ReadOnlyLayoutPage: React.FC = () => {
             <span className="text-sm text-gray-500">
               {layout.content.length} elements
             </span>
-            {authService.isLoggedIn() ? (
+            {authUtils.isLoggedIn() ? (
               <a 
                 href="/dashboard" 
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"

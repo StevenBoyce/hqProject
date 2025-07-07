@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { authUtils } from '../utils/authUtils';
 import { ProfileIcon } from '../icons';
 
 interface UserBadgeProps {
@@ -14,7 +14,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ className = '' }) => {
 
   useEffect(() => {
     // Check for existing username in localStorage on component mount
-    const storedUsername = authService.getUsername();
+    const storedUsername = authUtils.getUsername();
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -22,7 +22,7 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ className = '' }) => {
   }, []);
 
   const handleLogout = () => {
-    authService.logout();
+    authUtils.logout();
     setUsername('');
     navigate('/login');
   };

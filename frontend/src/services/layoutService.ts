@@ -1,4 +1,4 @@
-import { authService } from './authService';
+import { authUtils } from '../utils/authUtils';
 
 export interface Layout {
   id: string;
@@ -16,7 +16,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 export const layoutService = {
   // Get all layouts for the current user
   getUserLayouts: async (): Promise<Layout[]> => {
-    const username = authService.getUsername();
+    const username = authUtils.getUsername();
     if (!username) {
       throw new Error('User not logged in');
     }
@@ -32,7 +32,7 @@ export const layoutService = {
 
   // Create a new layout
   createLayout: async (name: string, content: any[]): Promise<Layout> => {
-    const username = authService.getUsername();
+    const username = authUtils.getUsername();
     if (!username) {
       throw new Error('User not logged in');
     }

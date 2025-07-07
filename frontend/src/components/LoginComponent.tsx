@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authUtils } from '../utils/authUtils';
 
 interface LoginComponentProps {
   className?: string;
@@ -13,8 +14,8 @@ export const LoginComponent: React.FC<LoginComponentProps> = ({ className = '' }
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for existing username in localStorage on component mount
-    const storedUsername = localStorage.getItem('layoutBuilderUsername');
+    // Check for existing username using authUtils
+    const storedUsername = authUtils.getUsername();
     if (storedUsername) {
       setUsername(storedUsername);
       setIsLoggedIn(true);
@@ -24,7 +25,7 @@ export const LoginComponent: React.FC<LoginComponentProps> = ({ className = '' }
 
   const handleLogin = () => {
     if (inputValue.trim()) {
-      localStorage.setItem('layoutBuilderUsername', inputValue.trim());
+      authUtils.setUsername(inputValue.trim());
       setUsername(inputValue.trim());
       setIsLoggedIn(true);
       setInputValue('');
@@ -32,7 +33,7 @@ export const LoginComponent: React.FC<LoginComponentProps> = ({ className = '' }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('layoutBuilderUsername');
+    authUtils.logout();
     setUsername('');
     setIsLoggedIn(false);
     navigate('/login');
