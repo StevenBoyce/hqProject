@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { ProfileIcon } from '../icons';
 
 interface UserBadgeProps {
   className?: string;
@@ -39,8 +40,9 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ className = '' }) => {
   return (
     <div className={`bg-white p-4 rounded-lg shadow-md border ${className}`}>
       <div className="text-center">
-        <div className="text-lg font-semibold text-gray-800 mb-2">
-          Welcome, {username}!
+        <div className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center gap-2">
+          <ProfileIcon size={20} className="text-gray-600" />
+          {username}
         </div>
         <button
           onClick={handleLogout}

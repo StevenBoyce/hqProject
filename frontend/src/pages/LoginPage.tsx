@@ -10,8 +10,8 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     // Check if user is already logged in
     if (authService.isLoggedIn()) {
-      // User is already logged in, redirect to home
-      navigate('/home');
+      // User is already logged in, redirect to dashboard
+      navigate('/dashboard');
     } else {
       setIsLoading(false);
     }
@@ -20,7 +20,7 @@ export const LoginPage: React.FC = () => {
   const handleLogin = () => {
     if (inputValue.trim()) {
       authService.setUsername(inputValue.trim());
-      navigate('/home');
+      navigate('/dashboard');
     }
   };
 
