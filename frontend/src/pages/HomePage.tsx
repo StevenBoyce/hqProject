@@ -6,6 +6,7 @@ import { TextElement } from '../components/elements/TextElement';
 import { ImageElement } from '../components/elements/ImageElement';
 import { ButtonElement } from '../components/elements/ButtonElement';
 import { UserBadge } from '../components/UserBadge';
+import { UndoIcon, RedoIcon } from '../icons';
 import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
 import { historyService, HistoryAction } from '../services/historyService';
@@ -402,19 +403,11 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Main Content */}
-      <div className="flex flex-1 p-4 gap-4 overflow-hidden">
-        {/* Left Sidebar - Controls */}
-        <div className="w-80 flex-shrink-0 flex flex-col gap-4">
-          {/* Layout Controls */}
-          <div className="bg-white rounded-lg shadow-md border p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Layout Controls</h3>
-            
-            {/* Name Input */}
-            <div className="mb-4">
-              <label htmlFor="layoutName" className="block text-sm font-medium text-gray-700 mb-1">
-                Layout Name
-              </label>
+      {/* Layout Name and Preview Controls */}
+      <div className="bg-white shadow-sm border-b px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 max-w-md">
               <input
                 id="layoutName"
                 type="text"
@@ -425,46 +418,86 @@ export const HomePage: React.FC = () => {
                 disabled={isPreviewMode}
               />
             </div>
-
-            {/* Preview Toggle */}
-            <div className="flex items-center gap-2 mb-4">
-              <label className="text-sm font-medium text-gray-700">Preview Mode</label>
-              <input
-                type="checkbox"
-                checked={isPreviewMode}
-                onChange={(e) => setIsPreviewMode(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Save Button */}
+            
             <button
               onClick={handleSaveLayout}
               disabled={isSaving || isPreviewMode || elements.length === 0 || !layoutName.trim()}
-              className={`w-full px-4 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
+              className={`px-6 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
                 isSaving || isPreviewMode || elements.length === 0 || !layoutName.trim()
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {isSaving ? 'Saving...' : currentLayout ? 'Save Changes' : 'Save Layout'}
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
 
-            {/* Save Error */}
-            {saveError && (
-              <div className="mt-3 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
-                {saveError}
-              </div>
-            )}
+            <button
+              onClick={handleUndo}
+              disabled={!canUndo || isPreviewMode}
+              className={`px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                !canUndo || isPreviewMode
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gray-600 hover:bg-gray-700'
+              }`}
+              title="Undo"
+            >
+              <UndoIcon size={18} className="text-white" />
+            </button>
+
+            <button
+              onClick={handleRedo}
+              disabled={!canRedo || isPreviewMode}
+              className={`px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                !canRedo || isPreviewMode
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gray-600 hover:bg-gray-700'
+              }`}
+              title="Redo"
+            >
+              <RedoIcon size={18} className="text-white" />
+            </button>
+
           </div>
+          
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Preview Mode</label>
+            <button
+              onClick={() => setIsPreviewMode(!isPreviewMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                isPreviewMode ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+              role="switch"
+              aria-checked={isPreviewMode}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                  isPreviewMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+        
+        {/* Save Error */}
+        {saveError && (
+          <div className="mt-3 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+            {saveError}
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-1 p-4 gap-4 overflow-hidden">
+        {/* Left Sidebar - Controls */}
+        <div className="flex-shrink-0 flex flex-col gap-4">
 
           {/* Element Controls */}
           <div className="bg-white rounded-lg shadow-md border p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Add Elements</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Add...</h3>
             
-            <div className="space-y-3">
+            <div className="flex flex-col space-y-3">
               <button 
-                className={`w-full px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
+                className={`w-24 px-3 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
                     : 'bg-gray-600 hover:bg-gray-700'
@@ -472,10 +505,10 @@ export const HomePage: React.FC = () => {
                 onClick={() => addElement("text")}
                 disabled={isPreviewMode}
               >
-                Add Text
+                Text
               </button>
               <button 
-                className={`w-full px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
+                className={`w-24 px-3 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
                     : 'bg-gray-600 hover:bg-gray-700'
@@ -483,10 +516,10 @@ export const HomePage: React.FC = () => {
                 onClick={() => addElement("image")}
                 disabled={isPreviewMode}
               >
-                Add Image
+                Image
               </button>
               <button 
-                className={`w-full px-4 py-2 text-white transition-colors duration-200 rounded-lg ${
+                className={`w-24 px-3 py-2 text-white transition-colors duration-200 rounded-lg ${
                   isPreviewMode 
                     ? 'bg-gray-400 cursor-not-allowed' 
                     : 'bg-gray-600 hover:bg-gray-700'
@@ -494,56 +527,12 @@ export const HomePage: React.FC = () => {
                 onClick={() => addElement("button")}
                 disabled={isPreviewMode}
               >
-                Add Button
+                Button
               </button>
             </div>
           </div>
 
-          {/* History Controls */}
-          <div className="bg-white rounded-lg shadow-md border p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">History</h3>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={handleUndo}
-                disabled={!canUndo || isPreviewMode}
-                className={`flex-1 px-4 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
-                  !canUndo || isPreviewMode
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gray-600 hover:bg-gray-700'
-                }`}
-                title="Undo"
-              >
-                Undo
-              </button>
 
-              <button
-                onClick={handleRedo}
-                disabled={!canRedo || isPreviewMode}
-                className={`flex-1 px-4 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
-                  !canRedo || isPreviewMode
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gray-600 hover:bg-gray-700'
-                }`}
-                title="Redo"
-              >
-                Redo
-              </button>
-            </div>
-
-            <button
-              onClick={handleCreateNewLayout}
-              disabled={isSaving || isPreviewMode}
-              className={`w-full mt-3 px-4 py-2 text-white font-medium rounded-lg transition-colors duration-200 ${
-                isSaving || isPreviewMode
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gray-600 hover:bg-gray-700'
-              }`}
-              title="Create New Layout"
-            >
-              New Layout
-            </button>
-          </div>
         </div>
 
         {/* Canvas */}

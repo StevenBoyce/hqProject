@@ -41,11 +41,6 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <div className="p-6">
-        <UserBadge />
-      </div>
-
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center px-6 py-12">
         <div className="max-w-4xl w-full">
@@ -138,12 +133,24 @@ export const DashboardPage: React.FC = () => {
                         <p>Created: {formatDate(layout.createdAt)}</p>
                       </div>
 
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">
-                          ID: {layout.id.slice(0, 8)}...
-                        </span>
-                        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                          Open →
+                      <div className="flex justify-between items-center mt-4">
+                        <button 
+                          className="text-gray-600 hover:text-gray-800 text-sm font-medium px-3 py-1 rounded border border-gray-300 hover:border-gray-400 transition-colors duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Add template functionality
+                          }}
+                        >
+                          Use as template
+                        </button>
+                        <button 
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded border border-blue-300 hover:border-blue-400 transition-colors duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLayoutClick(layout);
+                          }}
+                        >
+                          Open
                         </button>
                       </div>
                     </div>
