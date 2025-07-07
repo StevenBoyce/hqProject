@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, layoutService } from '../services/layoutService';
+import { UserBadge } from '../components/UserBadge';
 import { DeleteIcon } from '../icons';
 
 export const DashboardPage: React.FC = () => {
@@ -28,16 +29,16 @@ export const DashboardPage: React.FC = () => {
   };
 
   const handleLayoutClick = (layout: Layout) => {
-    navigate('/home', { state: { selectedLayout: layout } });
+    navigate('/layout', { state: { selectedLayout: layout } });
   };
 
   const handleCreateNewLayout = () => {
-    navigate('/home');
+    navigate('/layout');
   };
 
   const handleUseAsTemplate = (layout: Layout) => {
     const newLayoutName = `COPY OF ${layout.name}`;
-    navigate('/home', { 
+    navigate('/layout', { 
       state: {
         templateElements: layout.content,
         templateName: newLayoutName

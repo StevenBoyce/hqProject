@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
-import { HomePage } from './pages/HomePage';
+import { EditLayoutPage } from './pages/EditLayoutPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { Layout } from './components/Layout';
+import { RequireAuth } from './components/RequireAuth';
 
 function App() {
   return (
@@ -14,17 +15,21 @@ function App() {
         <Route 
           path="/dashboard" 
           element={
-            <Layout>
-              <DashboardPage />
-            </Layout>
+            <RequireAuth>
+              <Layout>
+                <DashboardPage />
+              </Layout>
+            </RequireAuth>
           } 
         />
         <Route 
-          path="/home" 
+          path="/layout" 
           element={
-            <Layout>
-              <HomePage />
-            </Layout>
+            <RequireAuth>
+              <Layout>
+                <EditLayoutPage />
+              </Layout>
+            </RequireAuth>
           } 
         />
       </Routes>

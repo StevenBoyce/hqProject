@@ -10,7 +10,7 @@ import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
 import { historyService, HistoryAction } from '../services/historyService';
 
-export const HomePage: React.FC = () => {
+export const EditLayoutPage: React.FC = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentLayout, setCurrentLayout] = useState<Layout | null>(null);
