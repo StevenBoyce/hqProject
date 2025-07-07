@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Element, ElementType } from '../types';
-import { createElement } from '../services/elementService';
+import { createElement } from '../utils/elementUtils';
 
 import { UndoIcon, RedoIcon, DeleteIcon, DownloadIcon, ShareIcon } from '../icons';
 import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
-import { historyService, HistoryAction } from '../services/historyService';
+import { historyService, HistoryAction } from '../utils/historyUtils';
 import { Canvas } from '../components/Canvas';
 import { exportLayoutToHTML, downloadHTML } from '../utils/htmlExport';
 

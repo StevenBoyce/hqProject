@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { Element, ElementType } from '../types';
-import { createElement, calculateGridPosition, calculateGridResize, willElementCollide } from '../services/elementService';
+import { Element } from '../types';
+import { calculateGridPosition, calculateGridResize, willElementCollide } from '../utils/elementUtils';
 import { TextElement } from './elements/TextElement';
 import { ImageElement } from './elements/ImageElement';
 import { ButtonElement } from './elements/ButtonElement';
-import { HistoryAction } from '../services/historyService';
+import { HistoryAction } from '../utils/historyUtils';
 
 interface CanvasProps {
   elements: Element[];
