@@ -34,6 +34,16 @@ export const DashboardPage: React.FC = () => {
     navigate('/home');
   };
 
+  const handleUseAsTemplate = (layout: Layout) => {
+    const newLayoutName = `COPY OF ${layout.name}`;
+    navigate('/home', { 
+      state: {
+        templateElements: layout.content,
+        templateName: newLayoutName
+      } 
+    });
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -138,7 +148,7 @@ export const DashboardPage: React.FC = () => {
                           className="text-gray-600 hover:text-gray-800 text-sm font-medium px-3 py-1 rounded border border-gray-300 hover:border-gray-400 transition-colors duration-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // TODO: Add template functionality
+                            handleUseAsTemplate(layout);
                           }}
                         >
                           Use as template

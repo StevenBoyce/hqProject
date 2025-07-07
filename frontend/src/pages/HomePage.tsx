@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Element, ElementType } from '../types';
 import { createElement, calculateGridPosition, calculateGridResize, willElementCollide } from '../services/elementService';
 import { TextElement } from '../components/elements/TextElement';
 import { ImageElement } from '../components/elements/ImageElement';
 import { ButtonElement } from '../components/elements/ButtonElement';
-import { UserBadge } from '../components/UserBadge';
 import { UndoIcon, RedoIcon } from '../icons';
 import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
@@ -25,7 +24,6 @@ export const HomePage: React.FC = () => {
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const elementsRef = useRef<Element[]>([]);
-  const navigate = useNavigate();
   const location = useLocation();
 
   // Keep the ref in sync with the state
@@ -38,13 +36,20 @@ export const HomePage: React.FC = () => {
     historyService.clear();
   }, []);
 
-  // Check for selected layout from dashboard
+  // Check for selected layout or template from dashboard
   useEffect(() => {
     if (location.state?.selectedLayout) {
       const layout = location.state.selectedLayout as Layout;
       setCurrentLayout(layout);
       setElements(layout.content);
       setLayoutName(layout.name);
+      // Clear the state to prevent re-loading on refresh
+      window.history.replaceState({}, document.title);
+    } else if (location.state?.templateElements) {
+      // Handle template elements
+      setCurrentLayout(null); // No existing layout since this is a new copy
+      setElements(location.state.templateElements);
+      setLayoutName(location.state.templateName || 'New Layout');
       // Clear the state to prevent re-loading on refresh
       window.history.replaceState({}, document.title);
     }
@@ -54,9 +59,8 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     if (currentLayout) {
       setLayoutName(currentLayout.name);
-    } else {
-      setLayoutName('');
     }
+    // Don't clear layout name when currentLayout is null, as it might be set by template
   }, [currentLayout]);
 
   // Update undo/redo state when history changes
@@ -204,15 +208,6 @@ export const HomePage: React.FC = () => {
     document.addEventListener("mouseup", onMouseUp);
   };
 
-  const handleLayoutSelect = (layout: Layout) => {
-    setCurrentLayout(layout);
-    setElements(layout.content);
-    setSaveError(null); // Clear any previous save errors
-    
-    // Clear history when loading a new layout
-    historyService.clear();
-  };
-
   const handleSaveLayout = async () => {
     if (elements.length === 0) {
       setSaveError('Cannot save empty layout');
@@ -231,10 +226,13 @@ export const HomePage: React.FC = () => {
       const sanitizedName = sanitizeLayoutName(layoutName.trim());
       
       if (currentLayout) {
+        console.log('Current layout:', currentLayout)
+        console.log('Layout ID being sent:', currentLayout.id)
         // Update existing layout
         const updatedLayout = await layoutService.updateLayout(currentLayout.id, sanitizedName, elements);
         setCurrentLayout(updatedLayout);
       } else {
+        console.log("creating new layout")
         // Create new layout
         const newLayout = await layoutService.createLayout(sanitizedName, elements);
         setCurrentLayout(newLayout);
@@ -246,14 +244,6 @@ export const HomePage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleCreateNewLayout = () => {
-    setCurrentLayout(null);
-    setElements([]);
-    setLayoutName('');
-    setSaveError(null);
-    historyService.clear();
   };
 
   const handleElementUpdate = (elementId: string, updates: Partial<Element>) => {
@@ -283,7 +273,6 @@ export const HomePage: React.FC = () => {
   };
 
   const handleElementDelete = (elementId: string) => {
-    const elementsSnapshot = [...elements];
     const deletedElement = elements.find((el) => el.id === elementId);
     
     setElements((prev) => prev.filter((el) => el.id !== elementId));
@@ -541,7 +530,6 @@ export const HomePage: React.FC = () => {
             ref={canvasRef}
             className="w-full h-full relative bg-gray-100 border border-gray-400 rounded-lg"
             style={{ 
-              backgroundSize: isPreviewMode ? '0px 0px' : `${GRID_SIZE}px ${GRID_SIZE}px`, 
               backgroundImage: isPreviewMode ? 'none' : "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)" 
             }}
           >
