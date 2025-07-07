@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, layoutService } from '../services/layoutService';
-import { UserBadge } from '../components/UserBadge';
+import { DeleteIcon } from '../icons';
 
 export const DashboardPage: React.FC = () => {
   const [layouts, setLayouts] = useState<Layout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingLayoutId, setDeletingLayoutId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +43,27 @@ export const DashboardPage: React.FC = () => {
         templateName: newLayoutName
       } 
     });
+  };
+
+  const handleDeleteLayout = async (layout: Layout, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    
+    if (!window.confirm(`Are you sure you want to delete "${layout.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingLayoutId(layout.id);
+    setError(null);
+
+    try {
+      await layoutService.deleteLayout(layout.id);
+      // Refresh the layouts list after successful deletion
+      await loadLayouts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete layout');
+    } finally {
+      setDeletingLayoutId(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -127,8 +149,24 @@ export const DashboardPage: React.FC = () => {
                     <div
                       key={layout.id}
                       onClick={() => handleLayoutClick(layout)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:bg-gray-100 hover:border-gray-300 cursor-pointer transition-all duration-200 hover:shadow-md"
+                      className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:bg-gray-100 hover:border-gray-300 cursor-pointer transition-all duration-200 hover:shadow-md relative"
                     >
+                      {/* Delete Icon - Top Left Corner */}
+                      <div 
+                        className="absolute top-2 left-2 p-1 hover:bg-red-100 rounded transition-colors duration-200"
+                        onClick={(e) => handleDeleteLayout(layout, e)}
+                        title="Delete layout"
+                      >
+                        <DeleteIcon 
+                          size={16} 
+                          className={`${
+                            deletingLayoutId === layout.id 
+                              ? 'text-gray-400' 
+                              : 'text-red-600 hover:text-red-700'
+                          } transition-colors duration-200`}
+                        />
+                      </div>
+
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-semibold text-gray-800 text-lg truncate flex-1">
                           {layout.name}

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Element, ElementType } from '../types';
 import { createElement, calculateGridPosition, calculateGridResize, willElementCollide } from '../services/elementService';
 import { TextElement } from '../components/elements/TextElement';
 import { ImageElement } from '../components/elements/ImageElement';
 import { ButtonElement } from '../components/elements/ButtonElement';
-import { UndoIcon, RedoIcon } from '../icons';
+import { UndoIcon, RedoIcon, DeleteIcon } from '../icons';
 import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
 import { historyService, HistoryAction } from '../services/historyService';
-
-const GRID_SIZE = 10;
 
 export const HomePage: React.FC = () => {
   const [elements, setElements] = useState<Element[]>([]);
@@ -21,10 +19,12 @@ export const HomePage: React.FC = () => {
   const [layoutName, setLayoutName] = useState<string>('');
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const elementsRef = useRef<Element[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Keep the ref in sync with the state
   useEffect(() => {
@@ -226,13 +226,10 @@ export const HomePage: React.FC = () => {
       const sanitizedName = sanitizeLayoutName(layoutName.trim());
       
       if (currentLayout) {
-        console.log('Current layout:', currentLayout)
-        console.log('Layout ID being sent:', currentLayout.id)
         // Update existing layout
         const updatedLayout = await layoutService.updateLayout(currentLayout.id, sanitizedName, elements);
         setCurrentLayout(updatedLayout);
       } else {
-        console.log("creating new layout")
         // Create new layout
         const newLayout = await layoutService.createLayout(sanitizedName, elements);
         setCurrentLayout(newLayout);
@@ -243,6 +240,30 @@ export const HomePage: React.FC = () => {
       setSaveError(error instanceof Error ? error.message : 'Failed to save layout');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteLayout = async () => {
+    if (!currentLayout) {
+      setSaveError('No layout to delete');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete "${currentLayout.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setSaveError(null);
+
+    try {
+      await layoutService.deleteLayout(currentLayout.id);
+      // Navigate back to dashboard after successful deletion
+      navigate('/dashboard');
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to delete layout');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -417,13 +438,13 @@ export const HomePage: React.FC = () => {
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              Save
             </button>
 
             <button
               onClick={handleUndo}
               disabled={!canUndo || isPreviewMode}
-              className={`px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+              className={`min-h-10 px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
                 !canUndo || isPreviewMode
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-gray-600 hover:bg-gray-700'
@@ -436,7 +457,7 @@ export const HomePage: React.FC = () => {
             <button
               onClick={handleRedo}
               disabled={!canRedo || isPreviewMode}
-              className={`px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+              className={`min-h-10 px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
                 !canRedo || isPreviewMode
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-gray-600 hover:bg-gray-700'
@@ -444,6 +465,19 @@ export const HomePage: React.FC = () => {
               title="Redo"
             >
               <RedoIcon size={18} className="text-white" />
+            </button>
+
+            <button
+              onClick={handleDeleteLayout}
+              disabled={isDeleting || !currentLayout || isPreviewMode}
+              className={`min-h-10 px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                isDeleting || !currentLayout || isPreviewMode
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}
+              title="Delete Layout"
+            >
+              <DeleteIcon size={18} className="text-white" />
             </button>
 
           </div>

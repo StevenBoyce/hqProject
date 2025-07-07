@@ -46,18 +46,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             <span className="ml-3 text-gray-700 font-medium hover:text-gray-900 transition-colors duration-200">Dashboard</span>
           )}
         </div>
-
-        {/* Navigation Items */}
-        <nav className="p-4">
-          <div className="space-y-2">
-            {/* Placeholder for future navigation items */}
-            {!isCollapsed && (
-              <div className="text-sm text-gray-500 px-3">
-                More navigation items will be added here...
-              </div>
-            )}
-          </div>
-        </nav>
       </div>
 
       {/* Footer with User Profile and Logout */}

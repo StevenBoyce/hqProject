@@ -108,10 +108,8 @@ export const layoutController = {
           },
         });
 
-        console.log('Layout updated successfully:', layout.id);
         
         const response = LayoutResponseSchema.parse(layout);
-        console.log('Response validated, sending back to client');
         res.json(response);
       } catch (updateError) {
         console.error('Error during layout update:', updateError);
