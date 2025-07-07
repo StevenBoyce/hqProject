@@ -164,11 +164,11 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     switch (element.type) {
       case 'text':
-        return <TextElement key={element.id} element={element as any} {...commonProps} />;
+        return <TextElement key={element.id} element={element as import('../types').TextElement} {...commonProps} />;
       case 'image':
-        return <ImageElement key={element.id} element={element as any} {...commonProps} />;
+        return <ImageElement key={element.id} element={element as import('../types').ImageElement} {...commonProps} />;
       case 'button':
-        return <ButtonElement key={element.id} element={element as any} {...commonProps} />;
+        return <ButtonElement key={element.id} element={element as import('../types').ButtonElement} {...commonProps} />;
       default:
         return null;
     }

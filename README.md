@@ -1,6 +1,9 @@
+Full-Stack Coding Challenge
+
+“Drag-n-Drop Layout Builder”
 1. Scenario
-Our agency often prototypes simple landing pages for clients. We'd like a tiny
-internal tool—a single-page "Layout Builder"—where non-technical teammates
+Our agency often prototypes simple landing pages for clients. We’d like a tiny
+internal tool—a single-page “Layout Builder”—where non-technical teammates
 can drag pre-made components onto a blank canvas, position/resize them, and
 save the resulting layout for later editing.
 2. Your Mission
@@ -20,7 +23,7 @@ Persistence
 
 • Each layout is associated with a userId.• Requests include userId in a
 header (e.g. X-User-Id ) or query param—no authentication logic is
-required.• "Save layout" → persists to PostgreSQL.• "Load my layouts"
+required.• “Save layout” → persists to PostgreSQL.• “Load my layouts”
 → fetches by userId .• Persist either as an HTML string or JSON array of
 elements (your choice—explain why in the README).
 
@@ -32,6 +35,19 @@ layouts for a user. GET /api/layouts/:id – fetch single layout.• Zod for
 request/response validation.• Prisma ORM ↔ PostgreSQL.• Basic error
 handling & (optional) simple rate-limiting middleware.
 Front-End Stack • Vite + React + TypeScript.• TailwindCSS for styling.
+Stretch Goals
+(optional)
+
+1. Share a layout via public link (read-only).2. Undo/redo stack.3. Export
+layout to static HTML.
+
+Clean Code & Patterns – self-documenting, modular, typed.
+Security Fundamentals – sanitize user input (to prevent XSS), parameterized
+DB queries, etc.—but no auth/JWT work needed.
+Scalability Posture – show how you’d split layers or add tests if this grew.
+Tests – at least one happy-path API test (Jest or Vitest).
+Documentation – concise README covering setup, major decisions, and how
+to run a demo.
 
 ## Project Setup
 

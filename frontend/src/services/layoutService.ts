@@ -1,10 +1,12 @@
 import { authUtils } from '../utils/authUtils';
 
+import { Element } from '../types';
+
 export interface Layout {
   id: string;
   name: string;
   userId: string;
-  content: any[];
+  content: Element[];
   createdAt: string;
   updatedAt: string;
 }
@@ -31,7 +33,7 @@ export const layoutService = {
   },
 
   // Create a new layout
-  createLayout: async (name: string, content: any[]): Promise<Layout> => {
+  createLayout: async (name: string, content: Element[]): Promise<Layout> => {
     const username = authUtils.getUsername();
     if (!username) {
       throw new Error('User not logged in');
@@ -57,7 +59,7 @@ export const layoutService = {
   },
 
   // Update an existing layout
-  updateLayout: async (id: string, name: string, content: any[]): Promise<Layout> => {
+  updateLayout: async (id: string, name: string, content: Element[]): Promise<Layout> => {
     const response = await fetch(`${API_BASE_URL}/api/layouts/${id}`, {
       method: 'PUT',
       headers: {
