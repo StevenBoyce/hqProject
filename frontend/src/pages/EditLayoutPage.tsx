@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Element, ElementType } from '../types';
-import { createElement, calculateGridPosition, calculateGridResize, willElementCollide } from '../services/elementService';
-import { TextElement } from '../components/elements/TextElement';
-import { ImageElement } from '../components/elements/ImageElement';
-import { ButtonElement } from '../components/elements/ButtonElement';
-import { UndoIcon, RedoIcon, DeleteIcon } from '../icons';
+import { createElement } from '../services/elementService';
+
+import { UndoIcon, RedoIcon, DeleteIcon, DownloadIcon, ShareIcon } from '../icons';
 import { Layout, layoutService } from '../services/layoutService';
 import { sanitizeLayoutName } from '../utils/sanitize';
 import { historyService, HistoryAction } from '../services/historyService';
+import { Canvas } from '../components/Canvas';
+import { exportLayoutToHTML, downloadHTML } from '../utils/htmlExport';
 
 export const EditLayoutPage: React.FC = () => {
   const [elements, setElements] = useState<Element[]>([]);
@@ -89,124 +89,7 @@ export const EditLayoutPage: React.FC = () => {
     setCanRedo(historyService.canRedo());
   };
 
-  const startDrag = (id: string, e: React.MouseEvent) => {
-    if (isPreviewMode) return; // Disable dragging in preview mode
-    const elementsSnapshot = [...elements];
-    const startX = e.clientX;
-    const startY = e.clientY;
 
-    const el = elements.find((el) => el.id === id);
-    if (!el) return;
-
-    const origX = el.x;
-    const origY = el.y;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const { x, y } = calculateGridPosition(
-        origX, 
-        origY, 
-        e.clientX, 
-        e.clientY, 
-        startX, 
-        startY, 
-        el.width, 
-        el.height
-      );
-      
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === id
-            ? { ...el, x, y }
-            : el
-        )
-      );
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      const movedElement = elementsRef.current.find((el) => el.id === id);
-      if (willElementCollide(movedElement, elementsRef.current)) {
-        setElements(elementsSnapshot);
-      } else {
-        // Track successful move in history
-        const action: HistoryAction = {
-          type: 'MOVE',
-          elementId: id,
-          previousState: elementsSnapshot,
-          newState: elementsRef.current,
-          description: `Move ${movedElement?.type || 'element'}`,
-        };
-        historyService.addAction(action);
-        // Update undo/redo state immediately
-        setCanUndo(historyService.canUndo());
-        setCanRedo(historyService.canRedo());
-      }
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  };
-
-  const startResize = (id: string, e: React.MouseEvent) => {
-    if (isPreviewMode) return; // Disable resizing in preview mode
-    e.stopPropagation(); // Prevent triggering drag
-    const elementsSnapshot = [...elements];
-    const startX = e.clientX;
-    const startY = e.clientY;
-
-    const el = elements.find((el) => el.id === id);
-    if (!el) return;
-
-    const origWidth = el.width;
-    const origHeight = el.height;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const { width, height } = calculateGridResize(
-        origWidth, 
-        origHeight, 
-        e.clientX, 
-        e.clientY, 
-        startX, 
-        startY, 
-        el.x, 
-        el.y
-      );
-
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === id
-            ? { ...el, width, height }
-            : el
-        )
-      );
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      const resizedElement = elementsRef.current.find((el) => el.id === id);
-      if (willElementCollide(resizedElement, elementsRef.current)) {
-        setElements(elementsSnapshot);
-      } else {
-        // Track successful resize in history
-        const action: HistoryAction = {
-          type: 'RESIZE',
-          elementId: id,
-          previousState: elementsSnapshot,
-          newState: elementsRef.current,
-          description: `Resize ${resizedElement?.type || 'element'}`,
-        };
-        historyService.addAction(action);
-        // Update undo/redo state immediately
-        setCanUndo(historyService.canUndo());
-        setCanRedo(historyService.canRedo());
-      }
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  };
 
   const handleSaveLayout = async () => {
     if (elements.length === 0) {
@@ -265,6 +148,52 @@ export const EditLayoutPage: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleDownloadLayout = () => {
+    if (elements.length === 0) {
+      setSaveError('Cannot download empty layout');
+      return;
+    }
+
+    const downloadName = currentLayout?.name || layoutName || 'Untitled Layout';
+    const html = exportLayoutToHTML(elements, downloadName);
+    downloadHTML(html, downloadName);
+  };
+
+  const handleShareLayout = () => {
+    if (!currentLayout) {
+      setSaveError('Cannot share unsaved layout');
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/layout/read-only/${currentLayout.id}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('Share link copied to clipboard!');
+      }).catch(() => {
+        // Fallback for older browsers
+        copyToClipboardFallback(shareUrl);
+      });
+    } else {
+      // Fallback for older browsers
+      copyToClipboardFallback(shareUrl);
+    }
+  };
+
+  const copyToClipboardFallback = (text: string) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('Share link copied to clipboard!');
+    } catch (err) {
+      alert('Failed to copy link. Please copy manually: ' + text);
+    }
+    document.body.removeChild(textArea);
   };
 
   const handleElementUpdate = (elementId: string, updates: Partial<Element>) => {
@@ -390,25 +319,11 @@ export const EditLayoutPage: React.FC = () => {
     setCanRedo(historyService.canRedo());
   };
 
-  const renderElement = (element: Element) => {
-    const commonProps = {
-      isPreviewMode,
-      onMouseDown: (e: React.MouseEvent) => startDrag(element.id, e),
-      onResize: (e: React.MouseEvent) => startResize(element.id, e),
-      onUpdate: handleElementUpdate,
-      onDelete: handleElementDelete,
-    };
-
-    switch (element.type) {
-      case 'text':
-        return <TextElement key={element.id} element={element as any} {...commonProps} />;
-      case 'image':
-        return <ImageElement key={element.id} element={element as any} {...commonProps} />;
-      case 'button':
-        return <ButtonElement key={element.id} element={element as any} {...commonProps} />;
-      default:
-        return null;
-    }
+  const handleHistoryAction = (action: HistoryAction) => {
+    historyService.addAction(action);
+    // Update undo/redo state immediately
+    setCanUndo(historyService.canUndo());
+    setCanRedo(historyService.canRedo());
   };
 
   return (
@@ -478,6 +393,32 @@ export const EditLayoutPage: React.FC = () => {
               title="Delete Layout"
             >
               <DeleteIcon size={18} className="text-white" />
+            </button>
+
+            <button
+              onClick={handleDownloadLayout}
+              disabled={elements.length === 0 || isPreviewMode}
+              className={`min-h-10 px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                elements.length === 0 || isPreviewMode
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+              title="Download as HTML"
+            >
+              <DownloadIcon size={18} className="text-white" />
+            </button>
+
+            <button
+              onClick={handleShareLayout}
+              disabled={!currentLayout || isPreviewMode}
+              className={`min-h-10 px-3 py-2 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                !currentLayout || isPreviewMode
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+              title="Share Layout"
+            >
+              <ShareIcon size={18} className="text-white" />
             </button>
 
           </div>
@@ -559,17 +500,15 @@ export const EditLayoutPage: React.FC = () => {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1">
-          <div
-            ref={canvasRef}
-            className="w-full h-full relative bg-gray-100 border border-gray-400 rounded-lg"
-            style={{ 
-              backgroundImage: isPreviewMode ? 'none' : "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)" 
-            }}
-          >
-            {elements.map(renderElement)}
-          </div>
-        </div>
+        <Canvas
+          elements={elements}
+          setElements={setElements}
+          isPreviewMode={isPreviewMode}
+          onElementUpdate={handleElementUpdate}
+          onElementDelete={handleElementDelete}
+          onHistoryAction={handleHistoryAction}
+          canvasRef={canvasRef}
+        />
       </div>
     </div>
   );

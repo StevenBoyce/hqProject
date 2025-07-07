@@ -87,6 +87,17 @@ export const layoutService = {
     }
   },
 
+  // Get a layout by ID (public, no authentication required)
+  getLayoutById: async (id: string): Promise<Layout> => {
+    const response = await fetch(`${API_BASE_URL}/api/layouts/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch layout: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
   // Sort layouts based on the selected option
   sortLayouts: (layouts: Layout[], sortOption: SortOption): Layout[] => {
     const sorted = [...layouts];

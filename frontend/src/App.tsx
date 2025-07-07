@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { EditLayoutPage } from './pages/EditLayoutPage';
+import { ReadOnlyLayoutPage } from './pages/ReadOnlyLayoutPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { Layout } from './components/Layout';
 import { RequireAuth } from './components/RequireAuth';
@@ -31,6 +32,10 @@ function App() {
               </Layout>
             </RequireAuth>
           } 
+        />
+        <Route 
+          path="/layout/read-only/:id" 
+          element={<ReadOnlyLayoutPage />} 
         />
       </Routes>
     </Router>

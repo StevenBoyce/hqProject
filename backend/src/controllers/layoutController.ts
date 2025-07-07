@@ -82,39 +82,25 @@ export const layoutController = {
       const validatedParams = LayoutPathSchema.parse(req.params) as LayoutPath;
       const validatedData = UpdateLayoutSchema.parse(req.body) as UpdateLayoutRequest;
 
-      console.log('Updating layout with ID:', validatedParams.id);
-      console.log('Request body:', validatedData);
-
       // Check if layout exists
       const existingLayout = await prisma.layout.findUnique({
         where: { id: validatedParams.id },
       });
 
-      console.log('Existing layout found:', !!existingLayout);
-
       if (!existingLayout) {
-        console.log('Layout not found in database');
         return res.status(404).json({ error: 'Layout not found' });
       }
 
-      console.log('About to update layout in database...');
-      
-      try {
-        const layout = await prisma.layout.update({
-          where: { id: validatedParams.id },
-          data: {
-            ...(validatedData.name && { name: validatedData.name }),
-            ...(validatedData.content && { content: validatedData.content }),
-          },
-        });
+      const layout = await prisma.layout.update({
+        where: { id: validatedParams.id },
+        data: {
+          ...(validatedData.name && { name: validatedData.name }),
+          ...(validatedData.content && { content: validatedData.content }),
+        },
+      });
 
-        
-        const response = LayoutResponseSchema.parse(layout);
-        res.json(response);
-      } catch (updateError) {
-        console.error('Error during layout update:', updateError);
-        throw updateError;
-      }
+      const response = LayoutResponseSchema.parse(layout);
+      res.json(response);
     } catch (error) {
       console.error('Error updating layout:', error);
       res.status(500).json({ error: 'Failed to update layout' });

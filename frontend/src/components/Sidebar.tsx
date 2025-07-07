@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         >
           <LogoutIcon size={20} className="text-red-500 flex-shrink-0 hover:text-gray-800 transition-colors duration-200" />
           {!isCollapsed && (
-            <span className="ml-3 text-gray-700 font-medium hover:text-gray-900 transition-colors duration-200">
+            <span className="ml-3 text-red-500 font-medium hover:text-gray-900 transition-colors duration-200">
               Logout
             </span>
           )}

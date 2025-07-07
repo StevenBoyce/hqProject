@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, layoutService } from '../services/layoutService';
-import { UserBadge } from '../components/UserBadge';
-import { DeleteIcon } from '../icons';
+import { DeleteIcon, ShareIcon } from '../icons';
 
 export const DashboardPage: React.FC = () => {
   const [layouts, setLayouts] = useState<Layout[]>([]);
@@ -65,6 +64,36 @@ export const DashboardPage: React.FC = () => {
     } finally {
       setDeletingLayoutId(null);
     }
+  };
+
+  const handleShareLayout = (layout: Layout) => {
+    const shareUrl = `${window.location.origin}/layout/read-only/${layout.id}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('Share link copied to clipboard!');
+      }).catch(() => {
+        // Fallback for older browsers
+        copyToClipboardFallback(shareUrl);
+      });
+    } else {
+      // Fallback for older browsers
+      copyToClipboardFallback(shareUrl);
+    }
+  };
+
+  const copyToClipboardFallback = (text: string) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('Share link copied to clipboard!');
+    } catch (err) {
+      alert('Failed to copy link. Please copy manually: ' + text);
+    }
+    document.body.removeChild(textArea);
   };
 
   const formatDate = (dateString: string) => {
@@ -154,7 +183,7 @@ export const DashboardPage: React.FC = () => {
                     >
                       {/* Delete Icon - Top Left Corner */}
                       <div 
-                        className="absolute top-2 left-2 p-1 hover:bg-red-100 rounded transition-colors duration-200"
+                        className="absolute top-1 left-1 p-1 hover:bg-red-100 rounded transition-colors duration-200"
                         onClick={(e) => handleDeleteLayout(layout, e)}
                         title="Delete layout"
                       >
@@ -165,6 +194,21 @@ export const DashboardPage: React.FC = () => {
                               ? 'text-gray-400' 
                               : 'text-red-600 hover:text-red-700'
                           } transition-colors duration-200`}
+                        />
+                      </div>
+
+                      {/* Share Icon - Top Right Corner */}
+                      <div 
+                        className="absolute top-1 right-1 p-1 hover:bg-blue-100 rounded transition-colors duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShareLayout(layout);
+                        }}
+                        title="Share layout"
+                      >
+                        <ShareIcon 
+                          size={16} 
+                          className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                         />
                       </div>
 
