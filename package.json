@@ -1,0 +1,47 @@
+{
+  "name": "layout-builder",
+  "version": "1.0.0",
+  "description": "A modern, full-stack web application for creating and managing interactive layouts with drag-and-drop functionality",
+  "main": "setup.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "start": "docker-compose up --build",
+    "dev": "docker-compose up --build",
+    "stop": "docker-compose down",
+    "clean": "docker-compose down -v --remove-orphans",
+    "logs": "docker-compose logs -f",
+    "backend:logs": "docker-compose logs -f backend",
+    "frontend:logs": "docker-compose logs -f frontend",
+    "db:logs": "docker-compose logs -f postgres",
+    "restart": "docker-compose restart",
+    "rebuild": "docker-compose down && docker-compose up --build",
+    "test": "cd backend && npm test",
+    "lint": "cd frontend && npm run lint",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "check": "node setup.js --check",
+    "verify": "node setup.js --verify"
+  },
+  "keywords": [
+    "layout-builder",
+    "drag-drop",
+    "react",
+    "nodejs",
+    "typescript",
+    "postgresql",
+    "docker"
+  ],
+  "author": "Layout Builder Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/layout-builder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/layout-builder/issues"
+  },
+  "homepage": "https://github.com/your-username/layout-builder#readme"
+} 
