@@ -40,6 +40,7 @@ A modern, full-stack web application for creating and managing interactive layou
 ### Database
 - **PostgreSQL 15** with persistent storage
 - **Prisma migrations** for schema management
+- **Layout Persistence** I chose to use a JSON array of objects instead of an HTML string as that is how they're represented in the UI.
 
 ### Development
 - **Docker Compose** for easy setup
