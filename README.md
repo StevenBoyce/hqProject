@@ -2,6 +2,13 @@
 
 A modern, full-stack web application for creating and managing interactive layouts with drag-and-drop functionality. Built with React, Node.js, TypeScript, and PostgreSQL.
 
+## Architecture Notes
+The backend stuff is pretty straightforward. We have validation middleware that uses Zod, but there's only one route group; layout. We have the routes and controller for that entity broken out in a scalable way.
+
+The frontend is much juicier. Usually when I set up a project, there are more pages/features mapped out, so I already know better how to group my custom hooks and components. For now though, we have the components fairly well broken into pages/groups. As the app develops, it's easier to know how to group these things.
+In the same vein, we have the services folder, (api call-related functions), utils (more helper function type functionality), and hooks (for more broken out state management). As the app grows, it will be easier to group/combine different hooks or helpers since they're pretty modular right now.
+ - architecture stuff written by me, not Cursor lol
+
 ## 🚀 Features
 
 ### Core Functionality
