@@ -42,11 +42,6 @@ export const EditLayoutPage: React.FC = () => {
     historyState.clearHistory();
   }, []);
 
-  // Update undo/redo state when elements change
-  useEffect(() => {
-    historyState.updateHistoryState();
-  }, [elementState.elements]);
-
   // Handle share layout
   const handleShareLayout = async () => {
     if (!layoutState.currentLayout) {

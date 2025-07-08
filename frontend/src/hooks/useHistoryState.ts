@@ -31,14 +31,18 @@ export const useHistoryState = () => {
         break;
       case 'UPDATE':
         // Apply the previous state
-        if (action.previousState) {
-          setElements(prev => 
-            prev.map(el => 
-              el.id === action.elementId 
-                ? action.previousState![0] 
-                : el
-            )
-          );
+        if (action.previousState && action.previousState.length > 0) {
+          const previousElement = action.previousState[0]; // Get the first (and only) element
+          if (previousElement) {
+            setElements(prev => {
+              const newElements = prev.map(el => 
+                el.id === action.elementId 
+                  ? previousElement
+                  : el
+              );
+              return newElements;
+            });
+          }
         }
         break;
       case 'MOVE':
@@ -68,14 +72,18 @@ export const useHistoryState = () => {
         break;
       case 'UPDATE':
         // Apply the new state
-        if (action.newState) {
-          setElements(prev => 
-            prev.map(el => 
-              el.id === action.elementId 
-                ? action.newState![0] 
-                : el
-            )
-          );
+        if (action.newState && action.newState.length > 0) {
+          const newElement = action.newState[0]; // Get the first (and only) element
+          if (newElement) {
+            setElements(prev => {
+              const newElements = prev.map(el => 
+                el.id === action.elementId 
+                  ? newElement
+                  : el
+              );
+              return newElements;
+            });
+          }
         }
         break;
       case 'MOVE':

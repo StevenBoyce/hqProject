@@ -30,22 +30,24 @@ export const useElementState = (
   };
 
   const updateElement = (elementId: string, updates: Partial<Element>) => {
-    const elementsSnapshot = [...elements];
+    const currentElement = elements.find(el => el.id === elementId);
+    if (!currentElement) return;
     
-    setElements((prev) =>
-      prev.map((el) =>
-        el.id === elementId
-          ? { ...el, ...updates }
-          : el
-      )
+    // Calculate the new state directly
+    const newElements = elements.map((el) =>
+      el.id === elementId
+        ? { ...el, ...updates }
+        : el
     );
+    
+    setElements(newElements);
 
-    // Track update in history
+    // Track update in history - store only the specific element
     const action: HistoryAction = {
       type: 'UPDATE',
       elementId,
-      previousState: elementsSnapshot,
-      newState: elementsRef.current,
+      previousState: [currentElement], // Store only the previous element
+      newState: [newElements.find(el => el.id === elementId)!], // Store only the new element
       description: `Update ${updates.type || 'element'}`,
     };
     addHistoryAction(action);

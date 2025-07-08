@@ -82,16 +82,18 @@ export const Canvas: React.FC<CanvasProps> = ({
       if (willElementCollide(movedElement, elementsRef.current)) {
         setElements(elementsSnapshot);
       } else {
-        // Track successful move in history
-        if (onHistoryAction) {
-          const action: HistoryAction = {
-            type: 'MOVE',
-            elementId: id,
-            previousState: elementsSnapshot,
-            newState: elementsRef.current,
-            description: `Move ${movedElement?.type || 'element'}`,
-          };
-          onHistoryAction(action);
+        // Only create history action if the element actually moved
+        if (movedElement && (movedElement.x !== origX || movedElement.y !== origY)) {
+          if (onHistoryAction) {
+            const action: HistoryAction = {
+              type: 'MOVE',
+              elementId: id,
+              previousState: elementsSnapshot,
+              newState: elementsRef.current,
+              description: `Move ${movedElement.type || 'element'}`,
+            };
+            onHistoryAction(action);
+          }
         }
       }
     };
@@ -143,16 +145,18 @@ export const Canvas: React.FC<CanvasProps> = ({
       if (willElementCollide(resizedElement, elementsRef.current)) {
         setElements(elementsSnapshot);
       } else {
-        // Track successful resize in history
-        if (onHistoryAction) {
-          const action: HistoryAction = {
-            type: 'RESIZE',
-            elementId: id,
-            previousState: elementsSnapshot,
-            newState: elementsRef.current,
-            description: `Resize ${resizedElement?.type || 'element'}`,
-          };
-          onHistoryAction(action);
+        // Only create history action if the element actually changed size
+        if (resizedElement && (resizedElement.width !== origWidth || resizedElement.height !== origHeight)) {
+          if (onHistoryAction) {
+            const action: HistoryAction = {
+              type: 'RESIZE',
+              elementId: id,
+              previousState: elementsSnapshot,
+              newState: elementsRef.current,
+              description: `Resize ${resizedElement.type || 'element'}`,
+            };
+            onHistoryAction(action);
+          }
         }
       }
     };
