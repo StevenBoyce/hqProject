@@ -11,7 +11,7 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = ({
 }) => {
   return (
     <div
-      className={`w-3 h-3 bg-gray-500 cursor-se-resize ${className}`}
+      className={`w-3 h-3 bg-gray-800 cursor-se-resize ${className}`}
       onMouseDown={onMouseDown}
     />
   );

@@ -1,6 +1,11 @@
 import { Element } from '../types';
 
-export const exportLayoutToHTML = (elements: Element[], layoutName: string): string => {
+export const exportLayoutToHTML = (
+  elements: Element[], 
+  layoutName: string, 
+  canvasWidth: number, 
+  canvasHeight: number
+): string => {
   const elementHTML = elements.map(element => {
     const style = `
       position: absolute;
@@ -55,8 +60,8 @@ export const exportLayoutToHTML = (elements: Element[], layoutName: string): str
         }
         .layout-container {
             position: relative;
-            width: 800px;
-            height: 600px;
+            width: ${canvasWidth}px;
+            height: ${canvasHeight}px;
             margin: 0 auto;
             background: white;
             border: 1px solid #ddd;

@@ -5,6 +5,7 @@ import { TextElement } from './elements/TextElement';
 import { ImageElement } from './elements/ImageElement';
 import { ButtonElement } from './elements/ButtonElement';
 import { HistoryAction } from '../utils/historyUtils';
+import { useCanvasDimensions } from '../hooks/useCanvasDimensions';
 
 interface CanvasProps {
   elements: Element[];
@@ -30,6 +31,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const internalCanvasRef = useRef<HTMLDivElement>(null);
   const elementsRef = useRef<Element[]>([]);
   const canvasRef = externalCanvasRef || internalCanvasRef;
+  
+  // Track canvas dimensions
+  const canvasDimensions = useCanvasDimensions(canvasRef);
 
   // Keep the ref in sync with the state
   useEffect(() => {
@@ -57,7 +61,9 @@ export const Canvas: React.FC<CanvasProps> = ({
         startX, 
         startY, 
         el.width, 
-        el.height
+        el.height,
+        canvasDimensions.width,
+        canvasDimensions.height
       );
       
       setElements((prev) =>
@@ -116,7 +122,9 @@ export const Canvas: React.FC<CanvasProps> = ({
         startX, 
         startY, 
         el.x, 
-        el.y
+        el.y,
+        canvasDimensions.width,
+        canvasDimensions.height
       );
 
       setElements((prev) =>

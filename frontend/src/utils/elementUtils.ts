@@ -40,11 +40,15 @@ export const clampToBounds = (value: number, min: number, max: number): number =
 };
 
 // Pure function to clamp element position to canvas bounds
-export const clampElementToCanvas = (element: DraggableElement): DraggableElement => {
+export const clampElementToCanvas = (
+  element: DraggableElement, 
+  canvasWidth: number, 
+  canvasHeight: number
+): DraggableElement => {
   return {
     ...element,
-    x: clampToBounds(element.x, 0, 800 - element.width),
-    y: clampToBounds(element.y, 0, 600 - element.height),
+    x: clampToBounds(element.x, 0, canvasWidth - element.width),
+    y: clampToBounds(element.y, 0, canvasHeight - element.height),
   };
 };
 
@@ -57,7 +61,9 @@ export const calculateGridPosition = (
   startMouseX: number,
   startMouseY: number,
   elementWidth: number,
-  elementHeight: number
+  elementHeight: number,
+  canvasWidth: number,
+  canvasHeight: number
 ): { x: number; y: number } => {
   const dx = mouseX - startMouseX;
   const dy = mouseY - startMouseY;
@@ -69,8 +75,8 @@ export const calculateGridPosition = (
   const snappedY = snapToGrid(newY);
   
   return {
-    x: clampToBounds(snappedX, 0, 800 - elementWidth),
-    y: clampToBounds(snappedY, 0, 600 - elementHeight),
+    x: clampToBounds(snappedX, 0, canvasWidth - elementWidth),
+    y: clampToBounds(snappedY, 0, canvasHeight - elementHeight),
   };
 };
 
@@ -83,7 +89,9 @@ export const calculateGridResize = (
   startMouseX: number,
   startMouseY: number,
   elementX: number,
-  elementY: number
+  elementY: number,
+  canvasWidth: number,
+  canvasHeight: number
 ): { width: number; height: number } => {
   const dx = mouseX - startMouseX;
   const dy = mouseY - startMouseY;
@@ -92,8 +100,8 @@ export const calculateGridResize = (
   const newHeight = Math.max(GRID_SIZE, startHeight + snapToGrid(dy));
   
   return {
-    width: clampToBounds(newWidth, GRID_SIZE, 800 - elementX),
-    height: clampToBounds(newHeight, GRID_SIZE, 600 - elementY),
+    width: clampToBounds(newWidth, GRID_SIZE, canvasWidth - elementX),
+    height: clampToBounds(newHeight, GRID_SIZE, canvasHeight - elementY),
   };
 };
 

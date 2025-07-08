@@ -14,6 +14,20 @@ const sanitizeText = (text: string): string => {
     .trim();
 };
 
+// Helper function to sanitize layout names - more permissive than regular text
+const sanitizeLayoutName = (text: string): string => {
+  if (typeof text !== 'string') return '';
+  
+  // Remove only truly dangerous characters for layout names
+  return text
+    .replace(/[<>]/g, '') // Remove angle brackets (potential HTML injection)
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:/gi, '') // Remove data: URLs
+    .replace(/vbscript:/gi, '') // Remove vbscript: URLs
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .trim();
+};
+
 // Element base schema
 const ElementBaseSchema = z.object({
   id: z.string().min(1).max(100),
@@ -57,14 +71,14 @@ const LayoutContentSchema = z.array(ElementSchema).max(100); // Limit number of 
 
 // Create/Update layout request schema
 export const CreateLayoutSchema = z.object({
-  name: z.string().min(1).max(100).transform(sanitizeText), // Sanitized layout name
+  name: z.string().min(1).max(100).transform(sanitizeLayoutName), // Sanitized layout name
   userId: z.string().min(1).max(100),
   content: LayoutContentSchema,
 });
 
 // Update layout request schema (all fields optional)
 export const UpdateLayoutSchema = z.object({
-  name: z.string().min(1).max(100).transform(sanitizeText).optional(), // Sanitized layout name
+  name: z.string().min(1).max(100).transform(sanitizeLayoutName).optional(), // Sanitized layout name
   content: LayoutContentSchema.optional(),
 });
 

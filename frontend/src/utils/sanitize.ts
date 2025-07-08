@@ -27,20 +27,29 @@ export function sanitizeText(input: string): string {
 }
 
 /**
- * Sanitizes layout name - allows alphanumeric, spaces, hyphens, and underscores
- * Removes any potentially dangerous characters
+ * Sanitizes layout name - allows alphanumeric, spaces, hyphens, underscores, and common punctuation
+ * Preserves apostrophes, colons, and other safe characters while preventing XSS
  */
 export function sanitizeLayoutName(input: string): string {
   if (typeof input !== 'string') {
     return '';
   }
   
-  // Remove any HTML entities and dangerous characters
-  const sanitized = sanitizeText(input);
+  // Remove only truly dangerous characters that could cause XSS or other issues
+  // Keep apostrophes, colons, and other safe punctuation
+  const sanitized = input
+    .replace(/[<>]/g, '') // Remove angle brackets (potential HTML injection)
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:/gi, '') // Remove data: URLs
+    .replace(/vbscript:/gi, '') // Remove vbscript: URLs
+    .replace(/on\w+\s*=/gi, ''); // Remove event handlers
   
-  // Only allow alphanumeric, spaces, hyphens, underscores, and common punctuation
-  // This regex allows: letters, numbers, spaces, hyphens, underscores, periods, commas
-  return sanitized.replace(/[^a-zA-Z0-9\s\-_.,!?]/g, '');
+  // Allow letters, numbers, spaces, hyphens, underscores, and common punctuation
+  // This includes: apostrophes, colons, periods, commas, exclamation marks, question marks, parentheses
+  const allowed = sanitized.replace(/[^a-zA-Z0-9\s\-_.,!?:;()'"]/g, '');
+  
+  // Clean up multiple spaces and trim
+  return allowed.replace(/\s+/g, ' ').trim();
 }
 
 /**

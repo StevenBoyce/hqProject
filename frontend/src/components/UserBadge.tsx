@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authUtils } from '../utils/authUtils';
 import { ProfileIcon } from '../icons';
+import { layoutPersistence } from '../utils/layoutPersistence';
 
 interface UserBadgeProps {
   className?: string;
@@ -22,6 +23,8 @@ export const UserBadge: React.FC<UserBadgeProps> = ({ className = '' }) => {
   }, []);
 
   const handleLogout = () => {
+    // Clear stored layout ID when logging out
+    layoutPersistence.clearLayoutId();
     authUtils.logout();
     setUsername('');
     navigate('/login');

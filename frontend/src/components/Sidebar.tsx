@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardIcon, ProfileIcon, LogoutIcon } from '../icons';
 import { authUtils } from '../utils/authUtils';
+import { layoutPersistence } from '../utils/layoutPersistence';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,11 +15,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   const handleDashboardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Clear stored layout ID when navigating away from EditLayoutPage
+    layoutPersistence.clearLayoutId();
     navigate('/dashboard');
   };
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Clear stored layout ID when logging out
+    layoutPersistence.clearLayoutId();
     authUtils.logout();
     navigate('/login');
   };

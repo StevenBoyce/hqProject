@@ -9,6 +9,7 @@ import { useLayoutState } from '../hooks/useLayoutState';
 import { useHistoryState } from '../hooks/useHistoryState';
 import { useElementState } from '../hooks/useElementState';
 import { useLayoutInitialization } from '../hooks/useLayoutInitialization';
+import { useCanvasDimensions } from '../hooks/useCanvasDimensions';
 
 // Components
 import { Canvas } from '../components/Canvas';
@@ -20,8 +21,11 @@ export const EditLayoutPage: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
+  // Track canvas dimensions
+  const canvasDimensions = useCanvasDimensions(canvasRef);
+  
   // Custom hooks for state management
-  const layoutState = useLayoutState();
+  const layoutState = useLayoutState(canvasDimensions);
   const historyState = useHistoryState();
   const elementState = useElementState(historyState.addHistoryAction);
 

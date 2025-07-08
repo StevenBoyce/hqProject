@@ -86,10 +86,20 @@ export function sanitizeLayoutName(name: string): string {
     return '';
   }
   
-  return sanitizeText(name)
-    .replace(/[^\w\s\-_]/g, '') // Remove special characters except spaces, hyphens, underscores
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-    .trim();
+  // Remove only truly dangerous characters for layout names
+  const sanitized = name
+    .replace(/[<>]/g, '') // Remove angle brackets (potential HTML injection)
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:/gi, '') // Remove data: URLs
+    .replace(/vbscript:/gi, '') // Remove vbscript: URLs
+    .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+  
+  // Allow letters, numbers, spaces, hyphens, underscores, and common punctuation
+  // This includes: apostrophes, colons, periods, commas, exclamation marks, question marks, parentheses
+  const allowed = sanitized.replace(/[^a-zA-Z0-9\s\-_.,!?:;()'"]/g, '');
+  
+  // Clean up multiple spaces and trim
+  return allowed.replace(/\s+/g, ' ').trim();
 }
 
 /**
